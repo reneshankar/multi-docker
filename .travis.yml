@@ -1,0 +1,26 @@
+sudo: required
+services:
+    - docker
+before_install:
+    - docker build -t rene/react-test -f ./client/Dockerfile.dev ./client
+
+script: 
+    - docker run rene/react-test npm test -- --coverage
+
+after_success:
+    - docker build -t rene/multi-client ./client
+    - docker build -t rene/multi-nginx ./nginx
+    - docker build -t rene/multi-server ./server
+    - docker build -t rene/multi-worker ./worker
+
+    # Login to docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # Take those images and push them to docker hub.
+    - docker push rene/multi-client
+    - docker push rene/multi-nginx
+    - docker push rene/multi-server
+    - docker build rene/multi-worker
+    
+
+
+
